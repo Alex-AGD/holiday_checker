@@ -1,27 +1,5 @@
 pipeline {
-    agent {
-        kubernetes {
-            yaml '''
-                apiVersion: v1
-                kind: Pod
-                metadata:
-                  labels:
-                    app: jenkins-agent
-                spec:
-                  containers:
-                  - name: nodejs
-                    image: node:18
-                    command:
-                    - cat
-                    tty: true
-                  - name: kubectl
-                    image: bitnami/kubectl
-                    command:
-                    - cat
-                    tty: true
-            '''
-        }
-    }
+    agent any
 
     triggers {
         cron('0 9 * * *')
@@ -35,17 +13,19 @@ pipeline {
     stages {
         stage('Setup') {
             steps {
-                container('nodejs') {
-                    sh 'npm install'
-                }
+                sh '''
+                    if ! command -v node &> /dev/null; then
+                        curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -
+                        sudo apt-get install -y nodejs
+                    fi
+                '''
+                sh 'npm install'
             }
         }
 
-        stage('Run Script') {
+        stage('Run Holiday Check') {
             steps {
-                container('nodejs') {
-                    sh 'node holiday_rates_checker.js'
-                }
+                sh 'node holiday_rates_checker.js'
             }
         }
     }

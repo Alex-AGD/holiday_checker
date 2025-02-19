@@ -1,6 +1,8 @@
 {
-  "name": "holiday-rates-checker",
+  "name": "holiday-checker",
   "version": "1.0.0",
+  "description": "Holiday and exchange rates checker",
+  "main": "holiday_rates_checker.js",
   "dependencies": {
     "axios": "^1.6.7"
   }

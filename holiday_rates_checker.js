@@ -1,15 +1,51 @@
 const axios = require("axios");
 
 async function checkHolidays() {
+  const apiKey = process.env.HOLIDAY_API_KEY;
   const year = new Date().getFullYear();
+  const month = new Date().getMonth() + 1;
+  const day = new Date().getDate();
+
   try {
-    const response = await axios.get(
-      `https://holidayapi.com/v1/holidays?country=BY&year=${year}&key=${process.env.HOLIDAY_API_KEY}`
+    // Проверяем праздники
+    const holidayResponse = await axios.get(
+      `https://holidayapi.com/v1/holidays?country=BY&year=${year}&month=${month}&day=${day}&key=${apiKey}`
     );
-    return response.data;
+
+    // Получаем курсы валют
+    const ratesResponse = await axios.get(
+      "https://api.nbrb.by/exrates/rates?periodicity=0"
+    );
+
+    // Формируем сообщение
+    let message = "🗓 Ежедневный отчет:\n\n";
+
+    // Добавляем информацию о праздниках
+    const holidays = holidayResponse.data.holidays || [];
+    if (holidays.length > 0) {
+      message += "🎉 Сегодня праздники:\n";
+      holidays.forEach((holiday) => {
+        message += `- ${holiday.name}\n`;
+      });
+    } else {
+      message += "📅 Сегодня нет праздников\n";
+    }
+
+    // Добавляем информацию о курсах валют
+    message += "\n💰 Курсы валют:\n";
+    const mainCurrencies = ratesResponse.data.filter((rate) =>
+      ["USD", "EUR", "RUB"].includes(rate.Cur_Abbreviation)
+    );
+    mainCurrencies.forEach((currency) => {
+      message += `${currency.Cur_Abbreviation}: ${currency.Cur_OfficialRate} BYN\n`;
+    });
+
+    // Отправляем в Slack
+    await axios.post(process.env.SLACK_WEBHOOK_URL, { text: message });
+    console.log("Сообщение успешно отправлено в Slack");
   } catch (error) {
-    console.error("Error fetching holidays:", error);
-    return null;
+    console.error("Ошибка:", error.message);
+    throw error;
   }
 }
 
@@ -70,3 +106,5 @@ async function main() {
 }
 
 main().catch(console.error);
+
+checkHolidays();
