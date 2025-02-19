@@ -2,9 +2,10 @@ const axios = require("axios");
 
 async function checkHolidays() {
   const apiKey = process.env.HOLIDAY_API_KEY;
-  const year = new Date().getFullYear();
-  const month = new Date().getMonth() + 1;
-  const day = new Date().getDate();
+  const currentDate = new Date();
+  const year = 2023; // Используем 2023 год для бесплатной версии API
+  const month = currentDate.getMonth() + 1;
+  const day = currentDate.getDate();
 
   try {
     // Проверяем праздники
@@ -23,16 +24,16 @@ async function checkHolidays() {
     // Добавляем информацию о праздниках
     const holidays = holidayResponse.data.holidays || [];
     if (holidays.length > 0) {
-      message += "🎉 Сегодня праздники:\n";
+      message += "🎉 В этот день в прошлом году были праздники:\n";
       holidays.forEach((holiday) => {
         message += `- ${holiday.name}\n`;
       });
     } else {
-      message += "📅 Сегодня нет праздников\n";
+      message += "📅 В этот день в прошлом году не было праздников\n";
     }
 
     // Добавляем информацию о курсах валют
-    message += "\n💰 Курсы валют:\n";
+    message += "\n💰 Текущие курсы валют:\n";
     const mainCurrencies = ratesResponse.data.filter((rate) =>
       ["USD", "EUR", "RUB"].includes(rate.Cur_Abbreviation)
     );
