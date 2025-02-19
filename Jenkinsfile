@@ -1,6 +1,26 @@
 pipeline {
     agent {
-        label 'node1'
+        kubernetes {
+            yaml '''
+                apiVersion: v1
+                kind: Pod
+                metadata:
+                  labels:
+                    app: jenkins-agent
+                spec:
+                  containers:
+                  - name: nodejs
+                    image: node:18
+                    command:
+                    - cat
+                    tty: true
+                  - name: kubectl
+                    image: bitnami/kubectl
+                    command:
+                    - cat
+                    tty: true
+            '''
+        }
     }
 
     triggers {
@@ -15,16 +35,15 @@ pipeline {
     stages {
         stage('Setup') {
             steps {
-                sh 'npm install'
+                container('nodejs') {
+                    sh 'npm install'
+                }
             }
         }
 
         stage('Run Script') {
             steps {
-                withCredentials([
-                    string(credentialsId: 'HOLIDAY_API_KEY', variable: 'HOLIDAY_API_KEY'),
-                    string(credentialsId: 'SLACK_WEBHOOK_URL', variable: 'SLACK_WEBHOOK_URL')
-                ]) {
+                container('nodejs') {
                     sh 'node holiday_rates_checker.js'
                 }
             }
