@@ -15,15 +15,21 @@ pipeline {
         stage('Setup') {
             steps {
                 sh '''
+                    # Проверяем наличие Node.js
                     if ! command -v node &> /dev/null; then
+                        # Создаем директорию для Node.js
                         mkdir -p /var/lib/jenkins/node
                         
-                        curl -fsSL https://nodejs.org/dist/v16.20.2/node-v16.20.2-linux-x64.tar.xz | tar -xJ -C /var/lib/jenkins/node --strip-components=1
+                        # Скачиваем и распаковываем Node.js (.tar.gz вместо .tar.xz)
+                        curl -fsSL https://nodejs.org/dist/v16.20.2/node-v16.20.2-linux-x64.tar.gz | tar -xz -C /var/lib/jenkins/node --strip-components=1
                         
+                        # Проверяем установку
                         /var/lib/jenkins/node/bin/node --version
                         /var/lib/jenkins/node/bin/npm --version
                     fi
                     
+                    # Устанавливаем зависимости
+                    cd $WORKSPACE  # Переходим в директорию проекта
                     /var/lib/jenkins/node/bin/npm install
                 '''
             }
@@ -31,7 +37,10 @@ pipeline {
 
         stage('Run Holiday Check') {
             steps {
-                sh '/var/lib/jenkins/node/bin/node holiday_rates_checker.js'
+                sh '''
+                    cd $WORKSPACE
+                    /var/lib/jenkins/node/bin/node holiday_rates_checker.js
+                '''
             }
         }
     }
