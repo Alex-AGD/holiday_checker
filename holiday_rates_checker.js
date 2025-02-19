@@ -3,7 +3,8 @@ const axios = require("axios");
 async function checkHolidaysAndRates() {
   const apiKey = process.env.HOLIDAY_API_KEY;
   const currentDate = new Date();
-  const year = 2022;
+  // Используем предыдущий год от текущего
+  const year = currentDate.getFullYear() - 1;
   const month = currentDate.getMonth() + 1;
   const day = currentDate.getDate();
 
@@ -39,13 +40,18 @@ async function checkHolidaysAndRates() {
     await axios.post(process.env.SLACK_WEBHOOK_URL, { text: message });
     console.log("Сообщение успешно отправлено в Slack");
   } catch (error) {
-    console.error("Ошибка:", error.message);
     if (error.response) {
-      console.error("Детали ошибки:", error.response.data);
+      console.error("Ошибка API:", {
+        status: error.response.status,
+        data: error.response.data,
+      });
+    } else {
+      console.error("Ошибка:", error.message);
     }
     throw error;
   }
 }
+
 checkHolidaysAndRates().catch((error) => {
   console.error("Критическая ошибка:", error);
   process.exit(1);
