@@ -3,7 +3,7 @@ const axios = require("axios");
 async function checkHolidaysAndRates() {
   const apiKey = process.env.HOLIDAY_API_KEY;
   const currentDate = new Date();
-  const year = 2023; // Используем 2023 год для бесплатной версии API
+  const year = 2022;
   const month = currentDate.getMonth() + 1;
   const day = currentDate.getDate();
 
